@@ -49,6 +49,7 @@ function App() {
     () => sessionStorage.getItem("formcraft-authenticated") === "true"
   );
 
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [formToDelete, setFormToDelete] = useState(null);
 
@@ -438,24 +439,27 @@ function App() {
 
     if (!form) return;
 
-    setCurrentFormId(form.id);
-    setFormTitle(form.title);
-    setFormDescription(form.description);
-
-    setFields(
-      form.fields.map((field) => ({
-        ...field,
-        options: [...(field.options || [])],
-      }))
-    );
-
-    setSelectedFieldId(null);
-    navigate("/preview");
+    navigate("/preview", {
+      state: {
+        source: "forms",
+        form: {
+          title: form.title,
+          description: form.description,
+          fields: form.fields.map((field) => ({
+            ...field,
+            options: [...(field.options || [])],
+          })),
+        },
+      },
+    });
   }
 
-  function handlePreviewSubmit(formData) {
-    console.log("Preview form submission:", formData);
-    alert("Form submitted successfully in preview mode!");
+  function handleBuilderPreview() {
+    navigate("/preview", {
+      state: {
+        source: "builder",
+      },
+    });
   }
 
   function handlePublicFormSubmit(formId, formData) {
@@ -513,13 +517,24 @@ function App() {
       : location.pathname.startsWith("/submissions")
         ? "submissions"
         : "builder";
+  const showSidebar = isAuthenticated && !hideSidebar;
+  const isBuilderPreview = location.state?.source === "builder";
+  const savedPreviewForm =
+    location.state?.source === "forms" ? location.state.form : null;
+  const savedPreviewFields = Array.isArray(savedPreviewForm?.fields)
+    ? savedPreviewForm.fields
+    : fields;
 
   return (
-    <div className="app">
+    <div
+      className={`app${showSidebar ? " has-sidebar" : ""}${isSidebarCollapsed ? " sidebar-collapsed" : ""}`}
+    >
 
-      {isAuthenticated && !hideSidebar && (
+      {showSidebar && (
         <Sidebar
           activePage={activePage}
+          isCollapsed={isSidebarCollapsed}
+          onToggle={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
           onNavigate={(page) => {
             const routes = {
               builder: "/builder",
@@ -551,7 +566,7 @@ function App() {
           builderPage={
             <>
               <Header
-                onPreview={() => navigate("/preview")}
+                onPreview={handleBuilderPreview}
                 onSave={handleSaveForm}
                 onCancel={handleCancelEdit}
                 isEditing={Boolean(currentFormId)}
@@ -598,11 +613,11 @@ function App() {
           }
           previewPage={
             <FormPreview
-              fields={fields}
-              formTitle={formTitle}
-              formDescription={formDescription}
-              onBack={() => navigate("/builder")}
-              onSubmit={handlePreviewSubmit}
+              fields={savedPreviewFields}
+              formTitle={savedPreviewForm?.title ?? formTitle}
+              formDescription={savedPreviewForm?.description ?? formDescription}
+              backLabel={isBuilderPreview ? "Back to Builder" : "Back to My Forms"}
+              onBack={() => navigate(isBuilderPreview ? "/builder" : "/forms")}
             />
           }
           publicFormPage={
