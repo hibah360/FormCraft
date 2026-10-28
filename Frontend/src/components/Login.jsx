@@ -27,7 +27,7 @@ function Login({ onLogin }) {
     <main className="login-page">
       <section className="login-card">
         <div className="login-brand">
-          <div className="login-logo">F</div>
+          {/* <div className="login-logo">F</div> */}
           <h1>FormCraft</h1>
           <p>Welcome back! Sign in to your workspace.</p>
         </div>
