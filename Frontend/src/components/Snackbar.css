@@ -15,7 +15,7 @@
   color: #ffffff;
   font-size: 14px;
   font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 30px rgba(24, 35, 75, 0.18);
   animation: snackbar-slide-in 0.25s ease-out;
 }
 

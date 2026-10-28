@@ -1,4 +1,5 @@
 import { useState } from "react";
+import formcraftLogo from "../assets/formcraft.png";
 
 function Login({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -28,7 +29,11 @@ function Login({ onLogin }) {
       <section className="login-card">
         <div className="login-brand">
           {/* <div className="login-logo">F</div> */}
-          <h1>FormCraft</h1>
+          <img
+            className="login-brand-logo"
+            src={formcraftLogo}
+            alt="FormCraft"
+          />
           <p>Welcome back! Sign in to your workspace.</p>
         </div>
 

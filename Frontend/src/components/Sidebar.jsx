@@ -1,8 +1,10 @@
 
+import formcraftLogo from "../assets/formcraft.png";
+
 function Sidebar({ activePage, onNavigate, onLogout }) {
   return (
     <aside className="sidebar">
-      <h2 className="logo">FormCraft</h2>
+      <img className="logo" src={formcraftLogo} alt="FormCraft" />
 
       <p className="sidebar-heading">WORKSPACE</p>
 
