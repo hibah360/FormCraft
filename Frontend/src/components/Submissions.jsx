@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 
 function Submissions({ submissions = [], onViewSubmission }) {
@@ -13,6 +12,9 @@ function Submissions({ submissions = [], onViewSubmission }) {
           {
             id: submission.formId,
             title: submission.formTitle,
+            totalSubmissions: submissions.filter(
+              (item) => item.formId === submission.formId
+            ).length,
           },
         ])
       ).values(),
@@ -23,9 +25,9 @@ function Submissions({ submissions = [], onViewSubmission }) {
     const search = searchTerm.toLowerCase();
 
     const matchesSearch =
-      submission.applicantName.toLowerCase().includes(search) ||
-      submission.email.toLowerCase().includes(search) ||
-      submission.formTitle.toLowerCase().includes(search);
+      (submission.applicantName || "").toLowerCase().includes(search) ||
+      (submission.email || "").toLowerCase().includes(search) ||
+      (submission.formTitle || "").toLowerCase().includes(search);
 
     const matchesForm =
       selectedForm === "all" ||
@@ -46,12 +48,12 @@ function Submissions({ submissions = [], onViewSubmission }) {
         </div>
       </header>
 
-      <div className="submissions-summary">
+      {/* <div className="submissions-summary">
         <div className="panel summary-card">
           <span>Total Submissions</span>
           <strong>{submissions.length}</strong>
         </div>
-      </div>
+      </div> */}
 
       <section className="panel submissions-panel">
         <div className="submissions-toolbar">
@@ -97,44 +99,48 @@ function Submissions({ submissions = [], onViewSubmission }) {
             <table className="forms-table">
               <thead>
                 <tr>
-                  <th>Applicant</th>
-                  <th>Form</th>
-                  <th>Submitted On</th>
+                  <th>Form Title</th>
+                  <th>Total Submissions</th>
                   <th>Action</th>
                 </tr>
               </thead>
 
               <tbody>
-                {filteredSubmissions.map((submission) => (
-                  <tr key={submission.id}>
-                    <td>
-                      <strong>{submission.applicantName}</strong>
-                      <p className="table-description">
-                        {submission.email}
-                      </p>
-                    </td>
+                {formOptions
+                  .filter((form) => {
+                    const search = searchTerm.toLowerCase();
 
-                    <td>{submission.formTitle}</td>
+                    const matchesSearch = form.title
+                      .toLowerCase()
+                      .includes(search);
 
-                    <td>
-                      {new Date(
-                        submission.submittedAt
-                      ).toLocaleString()}
-                    </td>
+                    const matchesForm =
+                      selectedForm === "all" ||
+                      form.id === selectedForm;
 
-                    <td>
-                      <button
-                        type="button"
-                        className="submission-view-button"
-                        onClick={() =>
-                          onViewSubmission?.(submission.id)
-                        }
-                      >
-                        View Response
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                    return matchesSearch && matchesForm;
+                  })
+                  .map((form) => (
+                    <tr key={form.id}>
+                      <td>
+                        <strong>{form.title}</strong>
+                      </td>
+
+                      <td>{form.totalSubmissions}</td>
+
+                      <td>
+                        <button
+                          type="button"
+                          className="submission-view-button"
+                          onClick={() =>
+                            onViewSubmission?.(form.id)
+                          }
+                        >
+                          View Responses
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

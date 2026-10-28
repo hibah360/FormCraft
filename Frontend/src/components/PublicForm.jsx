@@ -7,6 +7,7 @@ function PublicForm({
 }) {
     const [formData, setFormData] = useState({});
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     function handleChange(fieldId, value) {
         setFormData((previous) => ({
@@ -15,7 +16,7 @@ function PublicForm({
         }));
     }
 
-    function handleSubmit(event) {
+    async function handleSubmit(event) {
         event.preventDefault();
 
         if (!event.currentTarget.checkValidity()) {
@@ -23,8 +24,17 @@ function PublicForm({
             return;
         }
 
-        onSubmit(formData);
-        setIsSubmitted(true);
+        try {
+            setIsSubmitting(true);
+
+            await onSubmit(formData);
+
+            setIsSubmitted(true);
+        } catch (error) {
+            console.error("Submission failed:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     if (!form) {
@@ -142,8 +152,9 @@ function PublicForm({
                 <button
                     type="submit"
                     className="public-submit-button"
+                    disabled={isSubmitting}
                 >
-                    Submit Response
+                    {isSubmitting ? "Submitting..." : "Submit Response"}
                 </button>
             </form>
         </main>

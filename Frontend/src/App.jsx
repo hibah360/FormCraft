@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -37,11 +36,11 @@ function App() {
 
   const [forms, setForms] = useState([]);
   const [currentFormId, setCurrentFormId] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
 
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => sessionStorage.getItem("formcraft-authenticated") === "true"
   );
-
 
   useEffect(() => {
     async function fetchForms() {
@@ -71,6 +70,21 @@ function App() {
     }
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    async function fetchSubmissions() {
+      try {
+        const response = await api.get("/api/submissions");
+        setSubmissions(response.data);
+      } catch (error) {
+        console.error("Error fetching submissions:", error);
+        alert("Failed to fetch submissions from the server.");
+      }
+    }
+
+    if (isAuthenticated && location.pathname === "/submissions") {
+      fetchSubmissions();
+    }
+  }, [isAuthenticated, location.pathname]);
 
   const selectedField =
     fields.find((field) => field.id === selectedFieldId) || null;
@@ -416,7 +430,7 @@ function App() {
   const activePage =
     location.pathname === "/forms"
       ? "forms"
-      : location.pathname === "/submissions"
+      : location.pathname.startsWith("/submissions")
         ? "submissions"
         : "builder";
 
@@ -448,6 +462,7 @@ function App() {
       >
         <AppRoutes
           isAuthenticated={isAuthenticated}
+          submissions={submissions}
 
           loginPage={
             <Login onLogin={handleLogin} />
@@ -494,9 +509,9 @@ function App() {
           }
           submissionsPage={
             <Submissions
-              submissions={[]}
-              onViewSubmission={(submissionId) => {
-                console.log("View submission:", submissionId);
+              submissions={submissions}
+              onViewSubmission={(formId) => {
+                navigate(`/submissions/${formId}`);
               }}
             />
           }

@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import PublicForm from "./PublicForm";
 
+import api from "../api/api"
+
 function PublicFormPage({ onSubmit }) {
   const { formId } = useParams();
 
@@ -16,8 +18,8 @@ function PublicFormPage({ onSubmit }) {
         setLoading(true);
         setError("");
 
-        const response = await axios.get(
-          `http://localhost:5000/api/forms/${formId}`
+        const response = await api.get(
+          `/api/forms/${formId}`
         );
 
         const fetchedForm = {
@@ -34,7 +36,7 @@ function PublicFormPage({ onSubmit }) {
         console.error("Error fetching public form:", error);
         setError(
           error.response?.data?.message ||
-            "Unable to load this form."
+          "Unable to load this form."
         );
       } finally {
         setLoading(false);
@@ -44,9 +46,29 @@ function PublicFormPage({ onSubmit }) {
     fetchForm();
   }, [formId]);
 
-  function handleSubmit(formData) {
-    onSubmit(formId, formData);
+
+  async function handleSubmit(formData) {
+    try {
+      await api.post(
+        `/api/submissions/${formId}`,
+        {
+          responses: formData,
+        }
+      );
+
+      onSubmit(formId, formData);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+
+      alert(
+        error.response?.data?.message ||
+        "Failed to submit your response. Please try again."
+      );
+
+      throw error;
+    }
   }
+
 
   if (loading) {
     return (

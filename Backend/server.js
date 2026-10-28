@@ -6,13 +6,16 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const formRoutes = require("./routes/FormRoutes");
+const submissionRoutes = require("./routes/SubmissionRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+//routes
 app.use("/api/forms", formRoutes);
+app.use("/api/submissions", submissionRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "FormCraft backend is running!" });
