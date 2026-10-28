@@ -7,6 +7,7 @@ const cors = require("cors");
 
 const formRoutes = require("./routes/FormRoutes");
 const submissionRoutes = require("./routes/SubmissionRoutes");
+const authRoutes = require("./routes/AuthRoutes")
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(
 app.use(express.json());
 
 //routes
+app.use("/api/auth", authRoutes);
 app.use("/api/forms", formRoutes);
 app.use("/api/submissions", submissionRoutes);
 

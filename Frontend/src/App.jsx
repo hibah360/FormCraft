@@ -463,22 +463,49 @@ function App() {
     console.log("Applicant Response:", formData);
   }
 
-  function handleLogin({ email, password }) {
+
+  async function handleLogin({ email, password }) {
     if (!email.trim() || !password) {
       showSnackbar("Please enter your email and password.", "error");
-      return;
+      throw new Error("Please enter your email and password.");
     }
 
-    sessionStorage.setItem("formcraft-authenticated", "true");
-    setIsAuthenticated(true);
-    navigate("/forms", { replace: true });
+    try {
+      const response = await api.post("/api/auth/login", {
+        email: email.trim(),
+        password,
+      });
+
+      const { token, user } = response.data;
+
+      sessionStorage.setItem("formcraft-token", token);
+      sessionStorage.setItem("formcraft-user", JSON.stringify(user));
+      sessionStorage.setItem("formcraft-authenticated", "true");
+
+      setIsAuthenticated(true);
+      navigate("/forms", { replace: true });
+    } catch (error) {
+      console.error("Login failed:", error);
+
+      const message =
+        error.response?.data?.message ||
+        "Unable to log in. Please try again.";
+
+      showSnackbar(message, "error");
+      throw new Error(message);
+    }
   }
 
+
   function handleLogout() {
+    sessionStorage.removeItem("formcraft-token");
+    sessionStorage.removeItem("formcraft-user");
     sessionStorage.removeItem("formcraft-authenticated");
+
     setIsAuthenticated(false);
     navigate("/login", { replace: true });
   }
+
 
   const activePage =
     location.pathname === "/forms"
