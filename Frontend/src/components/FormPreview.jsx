@@ -58,7 +58,9 @@ function FormPreview({
                 </div>
             )}
 
-            <form className="preview-form panel" onSubmit={handleSubmit}>
+            <form className="preview-form panel" 
+            // onSubmit={handleSubmit}
+            >
                 <div className="form-heading">
                     <span className="form-badge">FORM PREVIEW</span>
                     <h2>{formTitle}</h2>
