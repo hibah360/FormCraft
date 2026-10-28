@@ -1,5 +1,10 @@
-
-function Header({ onPreview, onSave, isEditing, hasFields }) {
+function Header({
+  onPreview,
+  onSave,
+  onCancel,
+  isEditing,
+  hasFields,
+}) {
   return (
     <header className="topbar">
       <div>
@@ -8,6 +13,17 @@ function Header({ onPreview, onSave, isEditing, hasFields }) {
       </div>
 
       <div className="header-actions">
+
+        {isEditing && (
+          <button
+            type="button"
+            className="cancel-button"
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+        )}
+        
         <button
           type="button"
           className="preview-button"

@@ -15,6 +15,7 @@ import AppRoutes from "./routes/AppRoutes";
 import PublicFormPage from "./components/PublicFormPage";
 import Submissions from "./components/Submissions";
 import Login from "./components/Login";
+import Snackbar from "./components/Snackbar";
 
 import "./App.css";
 
@@ -38,9 +39,18 @@ function App() {
   const [currentFormId, setCurrentFormId] = useState(null);
   const [submissions, setSubmissions] = useState([]);
 
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
+
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => sessionStorage.getItem("formcraft-authenticated") === "true"
   );
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [formToDelete, setFormToDelete] = useState(null);
 
   useEffect(() => {
     async function fetchForms() {
@@ -107,6 +117,21 @@ function App() {
     setSelectedFieldId(newField.id);
   }
 
+  function showSnackbar(message, type = "success") {
+    setSnackbar({
+      open: true,
+      message,
+      type,
+    });
+  }
+
+  function closeSnackbar() {
+    setSnackbar((previous) => ({
+      ...previous,
+      open: false,
+    }));
+  }
+
   // function handleUpdateField(fieldId, updates) {
   //   setFields((previous) =>
   //     previous.map((field) =>
@@ -123,6 +148,11 @@ function App() {
           : field
       )
     );
+  }
+
+  function handleCancelEdit() {
+    resetCurrentForm();
+    navigate("/forms");
   }
 
   function handleDeleteField(fieldId) {
@@ -234,7 +264,7 @@ function App() {
   async function handleSaveForm() {
     // Validate form title
     if (!formTitle.trim()) {
-      alert("Please enter a form title before saving.");
+      showSnackbar("Please enter a form title before saving.", "error");
       return;
     }
 
@@ -276,22 +306,41 @@ function App() {
       const formFromDB = {
         ...response.data.form,
         id: response.data.form._id,
+        fields: response.data.form.fields.map((field) => ({
+          ...field,
+          id: field._id || field.id,
+          options: [...(field.options || [])],
+        })),
       };
 
       // Update the forms list in React state
+      // setForms((previous) => {
+      //   const exists = previous.some(
+      //     (form) => form.id === formFromDB.id
+      //   );
+
+      //   return exists
+      //     ? previous.map((form) =>
+      //       form.id === formFromDB.id ? formFromDB : form
+      //     )
+      //     : [...previous, formFromDB];
+      // });
+
       setForms((previous) => {
         const exists = previous.some(
           (form) => form.id === formFromDB.id
         );
 
-        return exists
+        const updatedForms = exists
           ? previous.map((form) =>
             form.id === formFromDB.id ? formFromDB : form
           )
-          : [...previous, formFromDB];
+          : [formFromDB, ...previous];
+
+        return updatedForms;
       });
 
-      alert("Form saved successfully!");
+      showSnackbar("Form saved successfully!", "success");
 
       // Reset the builder after successful saving
       resetCurrentForm();
@@ -301,9 +350,10 @@ function App() {
     } catch (error) {
       console.error("Error saving form:", error);
 
-      alert(
+      showSnackbar(
         error.response?.data?.message ||
-        "Failed to save form. Please try again."
+        "Failed to save form. Please try again.",
+        "error"
       );
     }
   }
@@ -313,6 +363,13 @@ function App() {
     const form = forms.find((item) => item.id === formId);
 
     if (!form) return;
+
+    console.log("Editing form:", form);
+    console.log("Form fields:", form.fields);
+    console.log(
+      "Field IDs:",
+      form.fields.map((field) => field.id)
+    );
 
     setCurrentFormId(form.id);
     setFormTitle(form.title);
@@ -345,38 +402,34 @@ function App() {
   //   }
   // }
 
-
   async function handleDeleteForm(formId) {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this form?"
-    );
-
-    if (!confirmed) return;
-
     try {
-      await api.delete(
-        `/api/forms/${formId}`
-      );
+      await api.delete(`/api/forms/${formId}`);
 
-      // Remove the form from the UI after successful deletion
       setForms((previous) =>
         previous.filter((form) => form.id !== formId)
       );
 
-      // Reset the builder if the deleted form is currently being edited
       if (currentFormId === formId) {
         resetCurrentForm();
       }
 
-      alert("Form deleted successfully!");
+      showSnackbar("Form deleted successfully!", "success");
     } catch (error) {
       console.error("Error deleting form:", error);
 
-      alert(
+      showSnackbar(
         error.response?.data?.message ||
-        "Failed to delete form. Please try again."
+        "Failed to delete form. Please try again.",
+        "error"
       );
     }
+  }
+
+
+  function handleDeleteClick(formId) {
+    setFormToDelete(formId);
+    setShowDeleteDialog(true);
   }
 
 
@@ -412,7 +465,7 @@ function App() {
 
   function handleLogin({ email, password }) {
     if (!email.trim() || !password) {
-      alert("Please enter your email and password.");
+      showSnackbar("Please enter your email and password.", "error");
       return;
     }
 
@@ -473,6 +526,7 @@ function App() {
               <Header
                 onPreview={() => navigate("/preview")}
                 onSave={handleSaveForm}
+                onCancel={handleCancelEdit}
                 isEditing={Boolean(currentFormId)}
                 hasFields={fields.length > 0}
               />
@@ -504,7 +558,7 @@ function App() {
               onCreateForm={handleCreateForm}
               onEditForm={handleEditForm}
               onPreviewForm={handlePreviewSavedForm}
-              onDeleteForm={handleDeleteForm}
+              onDeleteForm={handleDeleteClick}
             />
           }
           submissionsPage={
@@ -534,6 +588,63 @@ function App() {
         />
 
       </main>
+
+      {showDeleteDialog && (
+        <div
+          className="confirm-dialog-overlay"
+          onClick={() => {
+            setShowDeleteDialog(false);
+            setFormToDelete(null);
+          }}
+        >
+          <div
+            className="confirm-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p>Are you sure you want to delete this form?</p>
+
+            <div className="confirm-dialog-actions">
+              <button
+                type="button"
+                className="confirm-no-button"
+                onClick={() => {
+                  setShowDeleteDialog(false);
+                  setFormToDelete(null);
+                }}
+              >
+                No
+              </button>
+
+              <button
+                type="button"
+                className="confirm-yes-button"
+                onClick={async () => {
+                  const id = formToDelete;
+
+                  setShowDeleteDialog(false);
+                  setFormToDelete(null);
+
+                  if (id) {
+                    await handleDeleteForm(id);
+                  }
+                }}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {snackbar.open && (
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={closeSnackbar}
+        />
+      )}
     </div>
   );
 }
