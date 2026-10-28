@@ -74,7 +74,7 @@ function MyForms({ forms, onCreateForm, onEditForm, onPreviewForm, onDeleteForm 
                                 <tr>
                                     <th>Form Name</th>
                                     <th>Fields</th>
-                                    <th>Status</th>
+                                    {/* <th>Status</th> */}
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -91,11 +91,11 @@ function MyForms({ forms, onCreateForm, onEditForm, onPreviewForm, onDeleteForm 
 
                                         <td>{form.fields.length}</td>
 
-                                        <td>
+                                        {/* <td>
                                             <span className={`status-badge ${form.status}`}>
                                                 {form.status || "Draft"}
                                             </span>
-                                        </td>
+                                        </td> */}
 
                                         <td>
                                             <div className="table-actions">
