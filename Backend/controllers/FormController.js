@@ -1,5 +1,6 @@
 
 const Form = require("../models/Form");
+const Submission = require("../models/Submission");
 
 const createForm = async (req, res) => {
     try {
@@ -119,31 +120,28 @@ const getAllForms = async (req, res) => {
 
 const deleteForm = async (req, res) => {
     try {
-        const deletedForm = await Form.findByIdAndDelete(
-            req.params.id
-        );
+        const form = await Form.findById(req.params.id);
 
-        if (!deletedForm) {
+        if (!form) {
             return res.status(404).json({
                 message: "Form not found",
             });
         }
 
+        // Delete all submissions associated with this form
+        await Submission.deleteMany({ formId: form._id });
+
+        // Delete the form
+        await Form.findByIdAndDelete(form._id);
+
         return res.status(200).json({
-            message: "Form deleted successfully",
-            form: deletedForm,
+            message: "Form and its submissions deleted successfully",
         });
     } catch (error) {
         console.error("Error deleting form:", error);
 
-        if (error.name === "CastError") {
-            return res.status(400).json({
-                message: "Invalid form ID",
-            });
-        }
-
         return res.status(500).json({
-            message: "Failed to delete form",
+            message: "Failed to delete form and its submissions",
         });
     }
 };
