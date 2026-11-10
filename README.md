@@ -42,7 +42,7 @@ npm install
 Create a `.env` file inside the `Backend` folder:
 
 PORT=5000
-MONGODB_URI=your_mongodb_connection_string
+MONGODB_URI=mongodb+srv://hibahabdulrazak_db_user:XItXudyI3ij5HXmm@formcraft-cluster.iszzqhw.mongodb.net
 FRONTEND_URL=http://localhost:5173
 JWT_SECRET=161e51dd8509a6341b24afab49b6186db5cdbb497b647e1d4b2ccc80c66d1f65f8c7f579738da60171d2ef45e7f40432b77255e8e540097dc2654caec913a87a
 
